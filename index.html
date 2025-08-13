@@ -152,8 +152,8 @@ let loseSound = new Audio("snd/gameover.wav"); // Звук проигрыша
 let music = new Audio("snd/sound.mp3"); // Фоновая музыка
 
 // Настройка громкости (0.0 - тишина, 1.0 - максимум)
-jumpSound.volume = 0.5; // Громкость прыжка — 50%
-loseSound.volume = 0.8; // Громкость проигрыша — 80%
+jumpSound.volume = 0.27; // Громкость прыжка — 50%
+loseSound.volume = 0.25; // Громкость проигрыша — 80%
 music.volume = 0; // Начальная громкость 0, включается при прыжке
 music.loop = true; // Зацикливание музыки
 
@@ -301,8 +301,8 @@ const soundToggle = document.getElementById('soundToggle');
 soundToggle.addEventListener('click', () => {
   isMusicPlaying = !isMusicPlaying;
   soundToggle.src = isMusicPlaying ? "img/soundon.png" : "img/soundoff.png";
-  music.volume = isMusicPlaying ? 0.3 : 0; // Громкость 0.3 или 0
-  console.log('Звук переключен:', isMusicPlaying ? 'включен (volume: 0.3)' : 'выключен (volume: 0)');
+  music.volume = isMusicPlaying ? 0.13 : 0;
+  console.log('Звук переключен:', isMusicPlaying ? 'включен (volume: 0.13)' : 'выключен (volume: 0)');
 });
 
 // === Обработка фокуса окна ===
@@ -451,7 +451,7 @@ function jump() {
     if (!hasStarted) {
       hasStarted = true;
       if (isMusicPlaying) {
-        music.volume = 0.3; // Включаем громкость
+        music.volume = 0.13; // Включаем громкость
         music.play().then(() => {
           console.log('Фоновая музыка воспроизведена (первый прыжок)');
         }).catch((err) => {
@@ -643,7 +643,7 @@ function update(dt) {
       gameState = 'RUN';
       lastTime = performance.now();
       if (isMusicPlaying && hasStarted) {
-        music.volume = 0.3; // Восстанавливаем громкость после паузы
+        music.volume = 0.13; // Восстанавливаем громкость после паузы
         console.log('Фоновая музыка возобновлена (после отсчета)');
       }
       console.log('Отсчет завершен, игра возобновлена');
@@ -847,4 +847,5 @@ function loop(ts) {
 gameState = 'START'; // Устанавливаем START только при загрузке
 </script>
 </body>
+
 </html>
