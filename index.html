@@ -90,11 +90,6 @@
     .author:hover {
       text-decoration: underline;
     }
-    /* Для подредактирования позиции/стиля авторства:
-       - Измените bottom/left для .author
-       - Измените font-size, color для текста
-       - Измените width/height, border, border-radius для .author img
-    */
   </style>
 </head>
 <body>
@@ -223,6 +218,8 @@ let scoreAccumulator = 0;
 let speed = 6;
 let baseGravity = 0.8;
 let lastTime = performance.now();
+let accumulatedTime = 0; // Накопленное время для фиксированного шага
+const fixedDt = 1000 / 60; // 16.67 мс для 60 FPS
 let spawnTimer = 0;
 let cloudSpawnTimer = 0;
 let countdownTimer = 0;
@@ -447,7 +444,7 @@ function jump() {
     }).catch((err) => {
       console.error('Ошибка воспроизведения звука прыжка:', err);
     });
-    // Старт фоновой музыки после первого прыжка
+    // Старт ф_VENDOR_1_ музыки после первого прыжка
     if (!hasStarted) {
       hasStarted = true;
       if (isMusicPlaying) {
@@ -651,15 +648,11 @@ function update(dt) {
     return;
   }
 
-  // Ограничение dt
-  dt = Math.min(dt, 100);
-  dt = Math.max(dt, 1);
-
-  // Отладка
-  console.log('update: dt=', dt, 'score=', score, 'speed=', speed, 'player.y=', player.y, 'player.vy=', player.vy, 'gameState=', gameState);
+  // Масштабирование физики относительно fixedDt (16.67 мс для 60 FPS)
+  const scale = dt / (1000 / 60);
 
   // Очки (~20/сек)
-  scoreAccumulator += 0.333;
+  scoreAccumulator += 0.333 * scale;
   const scoreIncrement = Math.floor(scoreAccumulator);
   if (scoreIncrement >= 1) {
     score += scoreIncrement;
@@ -698,8 +691,8 @@ function update(dt) {
   }
 
   // Физика игрока
-  player.vy += baseGravity;
-  player.y += player.vy;
+  player.vy += baseGravity * scale; // Нормализация гравитации
+  player.y += player.vy * scale; // Нормализация перемещения
   if (player.y >= H - 92) {
     player.y = H - 92;
     player.vy = 0;
@@ -730,7 +723,7 @@ function update(dt) {
   // Движение тучек
   for (let i = clouds.length - 1; i >= 0; i--) {
     const c = clouds[i];
-    c.x -= speed * cloudConfig.speedMultiplier;
+    c.x -= speed * cloudConfig.speedMultiplier * scale;
     if (c.x + c.w < -40) clouds.splice(i, 1);
   }
 
@@ -744,7 +737,7 @@ function update(dt) {
   // Движение и проверка столбиков
   for (let i = customPillars.length - 1; i >= 0; i--) {
     const p = customPillars[i];
-    p.x -= speed;
+    p.x -= speed * scale;
     if (p.x + p.w < -40) customPillars.splice(i, 1);
     const pillarHitbox = {
       x: p.x + p.hitboxOffsetX,
@@ -770,7 +763,7 @@ function update(dt) {
   // Движение и проверка птичек
   for (let i = flyers.length - 1; i >= 0; i--) {
     const f = flyers[i];
-    f.x -= speed * 1.2;
+    f.x -= speed * 1.2 * scale;
     if (f.x + f.w < -40) flyers.splice(i, 1);
     const fbox = {
       x: f.x + f.hitboxOffsetX,
@@ -834,11 +827,13 @@ function loop(ts) {
   let dt = ts - lastTime;
   lastTime = ts;
 
-  dt = Math.min(dt, 100);
-  dt = Math.max(dt, 1);
+  dt = Math.min(dt, 100); // Ограничение максимального dt
+  accumulatedTime += dt;
 
-  console.log('loop: ts=', ts, 'dt=', dt, 'gameState=', gameState);
-  update(dt);
+  while (accumulatedTime >= fixedDt) {
+    update(fixedDt);
+    accumulatedTime -= fixedDt;
+  }
   render();
   requestAnimationFrame(loop);
 }
@@ -847,5 +842,4 @@ function loop(ts) {
 gameState = 'START'; // Устанавливаем START только при загрузке
 </script>
 </body>
-
 </html>
